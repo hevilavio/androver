@@ -29,8 +29,9 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
     private static final String DIRECTION_CLOCKWISE = "1";
     private static final String DIRECTION_COUNT_CLOCKWISE = "2";
 
-    private final double AXIS_CHANGE_TOLLERANCE = 1.0;
-    private final int ABS_LIMIT_BEFORE_MOVING_ROVER = 25;
+    private final double AXIS_CHANGE_TOLLERANCE = 0.5;
+    private final int ABS_LIMIT_BEFORE_MOVING_ROVER = 15;
+    private final int ARDUINO_PWM_LIMIT = 80;
 
 
     private SensorManager sensorManager;
@@ -98,7 +99,7 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
         if(hasChanged(ax, ay, az)){
             updateLastValues(ax, ay, az);
 
-            int wheelSpeed = linearMappingTOArduinoRange(Math.abs(ay));
+            int wheelSpeed = mappingTOArduinoRange(Math.abs(ay));
             String direction = getDirectionByYValue(wheelSpeed, ay);
 
             Log.d(Constants.LOG_TAG, "M=readyToSend,wheelSpeed=" + wheelSpeed + ",dir=" + direction);
@@ -112,21 +113,29 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
     /**
      * android acelerometer - 0 ~ (10 * 10)
      * arduino analogic - 0 ~ 255
+     * for my 5V motors - 0 ~ 160, limited by ARDUINO_PWM_LIMIT
      *
      * Y = (X-A)/(B-A) * (D-C) + C
      * reference: http://stackoverflow.com/questions/345187/math-mapping-numbers
      *
      * */
-    private int linearMappingTOArduinoRange(double value) {
+    private int mappingTOArduinoRange(double value) {
         int x = (int) (value * 10); // 0~10 will be 0~100
         double a = 0;
         double b = 100;
 
         double c = 0;
-        double d = 255;
-        return (int) ((x-a)/(b-a) * (d-c) + c);
+        double d = 200; // actually, is 80. But I want a more smooth throttle
+        int mapped = (int) ((x-a)/(b-a) * (d-c) + c);
+
+        if(mapped > ARDUINO_PWM_LIMIT){
+            // TODO: trigger tilt alert
+            mapped = ARDUINO_PWM_LIMIT;
+        }
+
+        return mapped;
     }
- // 32 / 10 * 255
+    // 32 / 10 * 255
     /**
      * According to Y value, return the direction
      * to move the wheels of the rover.
