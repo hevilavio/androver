@@ -2,6 +2,8 @@ package com.hevilavio.ardurover;
 
 import org.junit.Test;
 
+import java.lang.IllegalStateException;
+
 import static org.junit.Assert.*;
 
 /**
