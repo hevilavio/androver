@@ -14,7 +14,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.hevilavio.ardurover.bluetooth.BTConnectionInterface;
-import com.hevilavio.ardurover.util.ArduinoCommands;
+import com.hevilavio.ardurover.command.ArduinoCommandsID;
 import com.hevilavio.ardurover.util.AxisUiUpdater;
 import com.hevilavio.ardurover.util.Constants;
 
@@ -104,7 +104,7 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
 
             Log.d(Constants.LOG_TAG, "M=readyToSend,wheelSpeed=" + wheelSpeed + ",dir=" + direction);
 
-            BTConnectionInterface.getInstance().write(ArduinoCommands.ROVER_CONTROL
+            BTConnectionInterface.getInstance().write(ArduinoCommandsID.ROVER_FORWARD_BACKWARD
                     + direction
                     + wheelSpeed);
         }
