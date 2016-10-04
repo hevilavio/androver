@@ -11,10 +11,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
 import com.hevilavio.ardurover.bluetooth.BTConnectionInterface;
-import com.hevilavio.ardurover.command.ArduinoCommandsID;
+import com.hevilavio.ardurover.command.ArduinoCommand;
+import com.hevilavio.ardurover.command.ArduinoCommandSender;
+import com.hevilavio.ardurover.command.ForwardOrBackwardCommand;
 import com.hevilavio.ardurover.util.AxisUiUpdater;
 import com.hevilavio.ardurover.util.Constants;
 
@@ -23,31 +24,31 @@ import java.math.RoundingMode;
 
 public class RoverControlActivity extends AppCompatActivity implements SensorEventListener {
 
+    // TODO - Move to another class
     private static final int DECIMAL_PLATES = 4;
+    static final float AXIS_CHANGE_TOLERANCE = 0.5f;
 
-    private static final String DIRECTION_NEUTRAL = "0";
-    private static final String DIRECTION_CLOCKWISE = "1";
-    private static final String DIRECTION_COUNT_CLOCKWISE = "2";
-
-    private final double AXIS_CHANGE_TOLLERANCE = 0.5;
-    private final int ABS_LIMIT_BEFORE_MOVING_ROVER = 15;
-    private final int ARDUINO_PWM_LIMIT = 80;
-
-
+    // // TODO: 10/4/16 - can it be a local variable?
     private SensorManager sensorManager;
+
     double ax,ay,az;
     double lAx,lAy,lAz;
 
     private final AxisUiUpdater axisUiUpdater;
+    private final ArduinoCommandSender arduinoCommandSender;
 
-    public RoverControlActivity() {
+
+    protected RoverControlActivity() {
         this.axisUiUpdater = new AxisUiUpdater();
+        this.arduinoCommandSender = ArduinoCommandSender.getInstance();
     }
 
-    public RoverControlActivity(AxisUiUpdater axisUiUpdater) {
+    public RoverControlActivity(AxisUiUpdater axisUiUpdater, ArduinoCommandSender arduinoCommandSender) {
         this.axisUiUpdater = axisUiUpdater;
+        this.arduinoCommandSender = arduinoCommandSender;
     }
 
+    // todo - a test here will be good
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,107 +76,60 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        Log.d(Constants.LOG_TAG, "M=onWindowFocusChanged, hasFocus= " + hasFocus);
-
-        if(!hasFocus){
-//            sensorManager.unregisterListener(this);
-        }
+        Log.d(Constants.LOG_TAG, "M=onWindowFocusChanged");
+    }
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        Log.d(Constants.LOG_TAG, "M=onAccuracyChanged");
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if(!isAnAcelerometerEvent(event)){
-            return;
-        }
+        if(!isAnAccelerometerEvent(event)) return;
 
+        storeSensorValues(event);
+        updateUI();
+
+        if(!hasSignificantChange(ax, ay, az)) return;
+
+        updateLastSensorValues(ax, ay, az);
+        fireEventToArduino();
+    }
+
+    private void fireEventToArduino() {
+        ArduinoCommand command = new ForwardOrBackwardCommand(ay);
+        arduinoCommandSender.sendCommand(command);
+    }
+
+    private void updateUI() {
+        axisUiUpdater.updateText(this, R.id.txt_axis_x_value, scaleDoubleToString(ax));
+        axisUiUpdater.updateText(this, R.id.txt_axis_y_value, scaleDoubleToString(ay));
+        axisUiUpdater.updateText(this, R.id.txt_axis_z_value, scaleDoubleToString(az));
+    }
+
+    private void storeSensorValues(SensorEvent event) {
         ax = event.values[0];
         ay = event.values[1];
         az = event.values[2];
-
-        updateAxisUiValue(R.id.txt_axis_x_value, ax);
-        updateAxisUiValue(R.id.txt_axis_y_value, ay);
-        updateAxisUiValue(R.id.txt_axis_z_value, az);
-
-        if(hasChanged(ax, ay, az)){
-            updateLastValues(ax, ay, az);
-
-            int wheelSpeed = mappingTOArduinoRange(Math.abs(ay));
-            String direction = getDirectionByYValue(wheelSpeed, ay);
-
-            Log.d(Constants.LOG_TAG, "M=readyToSend,wheelSpeed=" + wheelSpeed + ",dir=" + direction);
-
-            BTConnectionInterface.getInstance().write(ArduinoCommandsID.ROVER_FORWARD_BACKWARD
-                    + direction
-                    + wheelSpeed);
-        }
-    }
-
-    /**
-     * android acelerometer - 0 ~ (10 * 10)
-     * arduino analogic - 0 ~ 255
-     * for my 5V motors - 0 ~ 160, limited by ARDUINO_PWM_LIMIT
-     *
-     * Y = (X-A)/(B-A) * (D-C) + C
-     * reference: http://stackoverflow.com/questions/345187/math-mapping-numbers
-     *
-     * */
-    private int mappingTOArduinoRange(double value) {
-        int x = (int) (value * 10); // 0~10 will be 0~100
-        double a = 0;
-        double b = 100;
-
-        double c = 0;
-        double d = 200; // actually, is 80. But I want a more smooth throttle
-        int mapped = (int) ((x-a)/(b-a) * (d-c) + c);
-
-        if(mapped > ARDUINO_PWM_LIMIT){
-            // TODO: trigger tilt alert
-            mapped = ARDUINO_PWM_LIMIT;
-        }
-
-        return mapped;
-    }
-    // 32 / 10 * 255
-    /**
-     * According to Y value, return the direction
-     * to move the wheels of the rover.
-     * */
-    private String getDirectionByYValue(int mappedY, double rawY) {
-
-        if(Math.abs(mappedY) <= ABS_LIMIT_BEFORE_MOVING_ROVER) return DIRECTION_NEUTRAL;
-        if(rawY > 0) return DIRECTION_CLOCKWISE;
-        if(rawY < 0) return DIRECTION_COUNT_CLOCKWISE;
-
-        throw new IllegalStateException("invalid direction, mappedY=" + mappedY);
-    }
-
-    private void updateAxisUiValue(int viewId, double value) {
-        axisUiUpdater.updateText(((TextView) findViewById(viewId)), scaleDoubleToString(value));
     }
 
     private String scaleDoubleToString(double value) {
-        return new BigDecimal(value).setScale(
-                DECIMAL_PLATES, RoundingMode.DOWN).toString();
+        return new BigDecimal(value).setScale(DECIMAL_PLATES, RoundingMode.DOWN).toString();
     }
 
-    private boolean isAnAcelerometerEvent(SensorEvent event) {
+    private boolean isAnAccelerometerEvent(SensorEvent event) {
         return event.sensor.getType() == Sensor.TYPE_ACCELEROMETER;
     }
 
-    private void updateLastValues(double ax, double ay, double az) {
+    private void updateLastSensorValues(double ax, double ay, double az) {
         lAx = ax;
         lAy = ay;
         lAz = az;
     }
 
-    private boolean hasChanged(double ax, double ay, double az) {
-        return Math.abs(lAx - ax) > AXIS_CHANGE_TOLLERANCE
-                || Math.abs(lAy - ay) > AXIS_CHANGE_TOLLERANCE
-                || Math.abs(lAz - az) > AXIS_CHANGE_TOLLERANCE;
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        Log.i(Constants.LOG_TAG, "M=onAccuracyChanged");
+    private boolean hasSignificantChange(double ax, double ay, double az) {
+        return Math.abs(lAx - ax) > AXIS_CHANGE_TOLERANCE
+                || Math.abs(lAy - ay) > AXIS_CHANGE_TOLERANCE
+                || Math.abs(lAz - az) > AXIS_CHANGE_TOLERANCE;
     }
 }

@@ -33,7 +33,7 @@ public class BTConnectionInterface {
 //        start();
     }
 
-    public static BTConnectionInterface getInstance() {
+    public synchronized static BTConnectionInterface getInstance() {
         if (instance == null) {
             instance = new BTConnectionInterface();
         }
