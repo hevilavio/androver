@@ -8,17 +8,29 @@ import android.bluetooth.BluetoothSocket;
  */
 public class BTConnection {
 
+    private final BluetoothState bluetoothState;
     private final BluetoothSocket bluetoothSocket;
     private final BluetoothDevice bluetoothDevice;
 
-    public BTConnection(BluetoothSocket bluetoothSocket, BluetoothDevice bluetoothDevice) {
+    public BTConnection(BluetoothState bluetoothState, BluetoothSocket bluetoothSocket, BluetoothDevice bluetoothDevice) {
 
-        if(!bluetoothSocket.isConnected()){
-            throw new RuntimeException();
+        if(bluetoothState.equals(BluetoothState.ENABLED)){
+            if(bluetoothSocket != null && !bluetoothSocket.isConnected()){
+                throw new IllegalStateException();
+            }
         }
 
+        this.bluetoothState = bluetoothState;
         this.bluetoothSocket = bluetoothSocket;
         this.bluetoothDevice = bluetoothDevice;
+    }
+
+    public BTConnection(BluetoothState bluetoothState) {
+        this(bluetoothState, null, null);
+    }
+
+    public BluetoothState getBluetoothState() {
+        return bluetoothState;
     }
 
     public BluetoothSocket getConnectedBluetoothSocket() {
@@ -27,5 +39,10 @@ public class BTConnection {
 
     public BluetoothDevice getBluetoothDevice() {
         return bluetoothDevice;
+    }
+
+    public boolean isReadyToUse(){
+        return BluetoothState.ENABLED.equals(bluetoothState)
+                && bluetoothSocket.isConnected();
     }
 }

@@ -22,12 +22,12 @@ public class SocketAcquirer {
 
         if(bluetoothAdapter == null){
             Log.w(Constants.LOG_TAG, "bluetoothAdapter not found, nothing to do...");
-            return null;
+            return new BTConnection(BluetoothState.NOT_FOUND);
         }
 
         if(!bluetoothAdapter.isEnabled()){
             Log.w(Constants.LOG_TAG, "bluetoothAdapter disabled, nothing to do...");
-            return null;
+            return new BTConnection(BluetoothState.DISABLED);
         }
 
         Log.d(Constants.LOG_TAG, "bluetoothAdapter enabled, trying to get devices");
@@ -35,7 +35,7 @@ public class SocketAcquirer {
 
         if(bondedDevices.size() == 0){
             Log.w(Constants.LOG_TAG, "No appropriated paired devices, returning");
-            return null;
+            return new BTConnection(BluetoothState.NO_BONDED_DEVICES);
         }
 
         Object[] devices = bondedDevices.toArray();
@@ -51,7 +51,7 @@ public class SocketAcquirer {
         } catch (IOException e) {
             throw new RuntimeException("Error on socket acquiring", e);
         }
-        return new BTConnection(socket, device);
+        return new BTConnection(BluetoothState.ENABLED, socket, device);
     }
 
     public boolean isBluetoothActive() {

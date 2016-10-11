@@ -3,6 +3,8 @@ package com.hevilavio.ardurover.bluetooth;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
+import com.hevilavio.ardurover.bluetooth.mock.MockedInputStream;
+import com.hevilavio.ardurover.bluetooth.mock.MockedOutputStream;
 import com.hevilavio.ardurover.router.SimpleMessageRouter;
 import com.hevilavio.ardurover.util.Constants;
 
@@ -16,21 +18,28 @@ import java.util.Arrays;
  */
 public class BTConnectionInterface {
 
-    final String terminator = "\n";
-    final int terminatorByte = terminator.getBytes()[0];
-    final Object lock = new Object();
+    // final
+    private final String terminator = "\n";
+    private final int terminatorByte = terminator.getBytes()[0];
+    private final Object lock = new Object();
+    private final SocketAcquirer socketAcquirer;
 
+    // holds state
+    private boolean started;
     private InputStream inStream;
     private OutputStream outputStream;
-    private boolean started;
+    private BTConnection bTConnection;
     private Thread readerThread;
 
-
-    private BTConnection bTConnection;
+    // instance
     private static BTConnectionInterface instance;
 
-    private BTConnectionInterface() {
-//        start();
+    BTConnectionInterface() {
+        socketAcquirer = new SocketAcquirer();
+    }
+
+    public BTConnectionInterface(SocketAcquirer socketAcquirer) {
+        this.socketAcquirer = socketAcquirer;
     }
 
     public synchronized static BTConnectionInterface getInstance() {
@@ -49,22 +58,46 @@ public class BTConnectionInterface {
         }
 
         Log.i(Constants.LOG_TAG, "Starting BTConnectionInterface");
-        bTConnection = new SocketAcquirer().getConnection();
+        bTConnection = socketAcquirer.getConnection();
 
+        if(!bTConnection.isReadyToUse()){
+            Log.d(Constants.LOG_TAG, "socketCom=mock");
+            startUsingMockedSocket();
+        }
+        else {
+            Log.d(Constants.LOG_TAG, "socketCom=real");
+            startUsingRealSocket();
+        }
+
+        startSocketReaderThread();
+        started = true;
+    }
+
+    private void startUsingMockedSocket() {
+        inStream = new MockedInputStream();
+        outputStream = new MockedOutputStream();
+
+        Log.i(Constants.LOG_TAG, "BTConnectionInterface started using mocked classes");
+    }
+
+    private void startUsingRealSocket() {
         BluetoothSocket bluetoothSocket = bTConnection.getConnectedBluetoothSocket();
-        Log.d(Constants.LOG_TAG, "Socked acquired, isConnected="
-                + bluetoothSocket.isConnected());
+
+        Log.d(Constants.LOG_TAG, "bluetoothSocket acquired, "
+                + "isConnected=" + bluetoothSocket.isConnected());
 
         try {
             inStream = bluetoothSocket.getInputStream();
             outputStream = bluetoothSocket.getOutputStream();
-//            outputStream.flush();
 
             Log.i(Constants.LOG_TAG, "BTConnectionInterface started normally");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private void startSocketReaderThread() {
         readerThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -82,8 +115,6 @@ public class BTConnectionInterface {
 
         readerThread.start();
         Log.i(Constants.LOG_TAG, "reader thread started...");
-
-        started = true;
     }
 
     public void stop() {
@@ -103,6 +134,7 @@ public class BTConnectionInterface {
                 outputStream.close();
                 Log.d(Constants.LOG_TAG, "outputStream closed");
 
+                // null check
                 bTConnection.getConnectedBluetoothSocket().close();
                 Log.d(Constants.LOG_TAG, "bluetoothSocket closed");
             } catch (IOException e) {
