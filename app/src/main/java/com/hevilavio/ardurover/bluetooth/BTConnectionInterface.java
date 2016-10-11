@@ -25,11 +25,11 @@ public class BTConnectionInterface {
     private final SocketAcquirer socketAcquirer;
 
     // holds state
-    private boolean started;
-    private InputStream inStream;
-    private OutputStream outputStream;
     private BTConnection bTConnection;
-    private Thread readerThread;
+    boolean started;
+    InputStream inStream;
+    OutputStream outputStream;
+    Thread readerThread;
 
     // instance
     private static BTConnectionInterface instance;
@@ -38,7 +38,7 @@ public class BTConnectionInterface {
         socketAcquirer = new SocketAcquirer();
     }
 
-    public BTConnectionInterface(SocketAcquirer socketAcquirer) {
+    BTConnectionInterface(SocketAcquirer socketAcquirer) {
         this.socketAcquirer = socketAcquirer;
     }
 
@@ -61,8 +61,16 @@ public class BTConnectionInterface {
         bTConnection = socketAcquirer.getConnection();
 
         if(!bTConnection.isReadyToUse()){
-            Log.d(Constants.LOG_TAG, "socketCom=mock");
+
+            /**
+             * todo
+             *
+             * - set online light do red
+             * - print "MOCK" on the screen
+             * */
+
             startUsingMockedSocket();
+            Log.d(Constants.LOG_TAG, "socketCom=mock");
         }
         else {
             Log.d(Constants.LOG_TAG, "socketCom=real");
