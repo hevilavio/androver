@@ -15,7 +15,7 @@ public class MockedInputStream extends InputStream {
         try {
             Thread.sleep(1000 * 60 * 60);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            return 0;
         }
         return 0; // Z
     }

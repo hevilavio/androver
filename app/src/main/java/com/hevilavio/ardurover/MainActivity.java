@@ -33,19 +33,25 @@ public class MainActivity extends AppCompatActivity {
         configureAcelerometerButton();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        BTConnectionInterface.getInstance().stop();
+    }
+
     private void configureAcelerometerButton() {
-        Log.i(tag, "M=configureAcelerometerButton.start");
+        Log.d(tag, "M=configureAccelerometerButton.start");
 
-        Button btnTestAcelerometer = (Button) findViewById(R.id.btn_test_acelerometer);
-        final Intent acelerometerIntent = new Intent(this, RoverControlActivity.class);
+        Button btnTestAccelerometer = (Button) findViewById(R.id.btn_test_acelerometer);
+        final Intent roverControlIntent = new Intent(this, RoverControlActivity.class);
 
-        btnTestAcelerometer.setOnClickListener(new View.OnClickListener(){
+        btnTestAccelerometer.setOnClickListener(new View.OnClickListener(){
 
             @Override
             public void onClick(View view) {
-                Log.i(tag, "M=btnTestAcelerometer.OnClickListener, starting new activity...");
+                Log.d(tag, "M=btnTestAccelerometer.OnClickListener, starting new activity...");
 
-                startActivity(acelerometerIntent);
+                startActivity(roverControlIntent);
             }
         });
 
@@ -53,32 +59,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void configurePairButton() {
-
-        Log.i(tag, "M=configurePairButton.start");
+        Log.d(tag, "M=configurePairButton.start");
 
         Button btnPair = (Button) findViewById(R.id.btn_pair);
         final Intent controlIntent = new Intent(this, ControlActivity.class);
-
 
         btnPair.setOnClickListener(new View.OnClickListener(){
 
             @Override
             public void onClick(View view) {
-                Log.i(tag, "M=btnPair.OnClickListener, starting new activity...");
+                Log.d(tag, "M=btnPair.OnClickListener, starting new activity...");
 
                 if(BTConnectionInterface.getInstance().isBluetoothActive()){
                     startActivity(controlIntent);
                 }
                 else{
-                    Snackbar.make(view, "Bluetooth aparentemente desativado", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                    disabledBluetoothAlert(view);
                 }
-
-
             }
         });
 
         Log.i(tag, "M=configurePairButton.finish");
+    }
+
+    private void disabledBluetoothAlert(View view) {
+        Snackbar.make(view, "Bluetooth aparentemente desativado", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
     }
 
     @Override
@@ -92,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically onReceive clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // as you specify disabledBluetoothAlert parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement

@@ -142,8 +142,7 @@ public class BTConnectionInterface {
                 outputStream.close();
                 Log.d(Constants.LOG_TAG, "outputStream closed");
 
-                // null check
-                bTConnection.getConnectedBluetoothSocket().close();
+                bTConnection.silentlyCloseConnectedDevice();
                 Log.d(Constants.LOG_TAG, "bluetoothSocket closed");
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -162,6 +161,8 @@ public class BTConnectionInterface {
     public boolean isBluetoothActive(){
         return new SocketAcquirer().isBluetoothActive();
     }
+
+
 
     public int write(String content) {
 
