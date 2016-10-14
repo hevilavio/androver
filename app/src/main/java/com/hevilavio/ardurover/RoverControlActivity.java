@@ -25,11 +25,8 @@ import java.math.RoundingMode;
 public class RoverControlActivity extends AppCompatActivity implements SensorEventListener {
 
     // TODO - Move to another class
-    private static final int DECIMAL_PLATES = 4;
+    static final int DECIMAL_PLATES = 4;
     static final float AXIS_CHANGE_TOLERANCE = 0.5f;
-
-    // // TODO: 10/4/16 - can it be a local variable?
-    private SensorManager sensorManager;
 
     double ax,ay,az;
     double lAx,lAy,lAz;
@@ -37,8 +34,10 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
     private final AxisUiUpdater axisUiUpdater;
     private final ArduinoCommandSender arduinoCommandSender;
 
+    SensorManager sensorManager;
 
-    protected RoverControlActivity() {
+
+    RoverControlActivity() {
         this.axisUiUpdater = new AxisUiUpdater();
         this.arduinoCommandSender = ArduinoCommandSender.getInstance();
     }
@@ -64,19 +63,20 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
             }
         });
 
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        sensorManager.registerListener(this, sensorManager.getDefaultSensor(
-                Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+        if(sensorManager == null) sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
+        registerAccelerometerListener();
         BTConnectionInterface.getInstance().start();
-
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        Log.d(Constants.LOG_TAG, "M=onWindowFocusChanged");
+        Log.d(Constants.LOG_TAG, "M=onWindowFocusChanged,hasFocus=" + hasFocus);
+
+        if(!hasFocus) unregisterAccelerometerListener();
     }
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         Log.d(Constants.LOG_TAG, "M=onAccuracyChanged");
@@ -95,6 +95,17 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
         updateLastSensorValues(ax, ay, az);
         fireEventToArduino();
     }
+
+
+    private void registerAccelerometerListener() {
+        sensorManager.registerListener(this, sensorManager.getDefaultSensor(
+                Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    private void unregisterAccelerometerListener() {
+        sensorManager.unregisterListener(this);
+    }
+
 
     private void fireEventToArduino() {
         ArduinoCommand command = new ForwardOrBackwardCommand(ay);
