@@ -1,5 +1,7 @@
 package com.hevilavio.ardurover.command;
 
+import com.hevilavio.ardurover.util.MotionUtils;
+
 /**
  * Created by hevilavio on 10/3/16.
  */
@@ -10,9 +12,11 @@ public class ForwardOrBackwardCommand implements ArduinoCommand {
     private static final String DIRECTION_COUNT_CLOCKWISE = "2";
 
     final double rawYAxis;
-
+    final MotionUtils motionUtils;
     public ForwardOrBackwardCommand(double rawYAxis) {
         this.rawYAxis = rawYAxis;
+        motionUtils = new MotionUtils(DIRECTION_NEUTRAL, DIRECTION_CLOCKWISE
+                , DIRECTION_COUNT_CLOCKWISE, ABS_LIMIT_BEFORE_MOVING_ROVER);
     }
 
     @Override
@@ -31,38 +35,8 @@ public class ForwardOrBackwardCommand implements ArduinoCommand {
                 + wheelSpeed;
     }
 
-
-    /**
-     * android acelerometer - 0 ~ (10 * 10)
-     * arduino analogic - 0 ~ 255
-     * for my 5V motors - 0 ~ 160, limited by ARDUINO_PWM_LIMIT
-     *
-     * Y = (X-A)/(B-A) * (D-C) + C
-     * reference: http://stackoverflow.com/questions/345187/math-mapping-numbers
-     *
-     * */
     String mappingTOArduinoRange() {
-
-        double value = Math.abs(rawYAxis);
-
-        int x = (int) (value * 10); // 0~10 will be 0~100
-        double a = 0;
-        double b = 100;
-
-        double c = 0;
-        double d = 200; // actually, is 80. But I want a more smooth throttle
-        int mapped = (int) ((x-a)/(b-a) * (d-c) + c);
-
-        if(mapped > ARDUINO_PWM_LIMIT){
-            // TODO: trigger tilt alert
-            mapped = ARDUINO_PWM_LIMIT;
-        }
-
-        return leftPad(mapped);
-    }
-
-    private String leftPad(int mapped) {
-        return String.format("%3s", mapped).replace(' ', '0');
+        return motionUtils.mappingTOArduinoRange(rawYAxis);
     }
 
     /**
@@ -70,13 +44,7 @@ public class ForwardOrBackwardCommand implements ArduinoCommand {
      * to move the wheels of the rover.
      * */
     String getDirection(int wheelSpeed) {
-
-        // todo: forget wheelSpeed, change it to look to rawYAxis, which vary from -10 to +10
-        if(Math.abs(wheelSpeed) <= ABS_LIMIT_BEFORE_MOVING_ROVER) return DIRECTION_NEUTRAL;
-        if(rawYAxis > 0) return DIRECTION_CLOCKWISE;
-        if(rawYAxis < 0) return DIRECTION_COUNT_CLOCKWISE;
-
-        throw new IllegalStateException("invalid direction, wheelSpeed=" + wheelSpeed);
+        return motionUtils.getDirectionBasedOnSpeed(wheelSpeed, rawYAxis);
     }
 
     @Override

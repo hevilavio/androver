@@ -110,6 +110,8 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
     private void fireEventToArduino() {
         ArduinoCommand command = new ForwardOrBackwardCommand(ay);
         arduinoCommandSender.sendCommand(command);
+
+        // // TODO: 10/14/16 - fire a LeftOrRightCommand if necessary
     }
 
     private void updateUI() {

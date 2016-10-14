@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by hevilavio on 10/3/16.
  */
+// todo: some testes here should be on MotionUtilsTest.java
 public class ForwardOrBackwardCommandTest {
 
     @Test
