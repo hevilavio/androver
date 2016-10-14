@@ -5,10 +5,6 @@ package com.hevilavio.ardurover.command;
  */
 public class ForwardOrBackwardCommand implements ArduinoCommand {
 
-    // TODO - maybe move to another class
-    private final int ARDUINO_PWM_LIMIT = 80;
-    private final int ABS_LIMIT_BEFORE_MOVING_ROVER = 15;
-
     private static final String DIRECTION_NEUTRAL = "0";
     private static final String DIRECTION_CLOCKWISE = "1";
     private static final String DIRECTION_COUNT_CLOCKWISE = "2";
@@ -27,9 +23,8 @@ public class ForwardOrBackwardCommand implements ArduinoCommand {
     @Override
     public String commandString() {
 
-        int wheelSpeed = mappingTOArduinoRange(rawYAxis);
-        String direction = getDirection(wheelSpeed);
-
+        String wheelSpeed = mappingTOArduinoRange();
+        String direction = getDirection(Integer.valueOf(wheelSpeed));
 
         return ArduinoCommandsID.ROVER_FORWARD_BACKWARD
                 + direction
@@ -46,9 +41,9 @@ public class ForwardOrBackwardCommand implements ArduinoCommand {
      * reference: http://stackoverflow.com/questions/345187/math-mapping-numbers
      *
      * */
-    private int mappingTOArduinoRange(double rawY) {
+    String mappingTOArduinoRange() {
 
-        double value = Math.abs(rawY);
+        double value = Math.abs(rawYAxis);
 
         int x = (int) (value * 10); // 0~10 will be 0~100
         double a = 0;
@@ -63,15 +58,20 @@ public class ForwardOrBackwardCommand implements ArduinoCommand {
             mapped = ARDUINO_PWM_LIMIT;
         }
 
-        return mapped;
+        return leftPad(mapped);
+    }
+
+    private String leftPad(int mapped) {
+        return String.format("%3s", mapped).replace(' ', '0');
     }
 
     /**
      * According to Y value, return the direction
      * to move the wheels of the rover.
      * */
-    private String getDirection(int wheelSpeed) {
+    String getDirection(int wheelSpeed) {
 
+        // todo: forget wheelSpeed, change it to look to rawYAxis, which vary from -10 to +10
         if(Math.abs(wheelSpeed) <= ABS_LIMIT_BEFORE_MOVING_ROVER) return DIRECTION_NEUTRAL;
         if(rawYAxis > 0) return DIRECTION_CLOCKWISE;
         if(rawYAxis < 0) return DIRECTION_COUNT_CLOCKWISE;
