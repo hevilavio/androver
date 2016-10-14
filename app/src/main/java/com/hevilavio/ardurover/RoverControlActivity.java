@@ -48,7 +48,6 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
         this.arduinoCommandSender = arduinoCommandSender;
     }
 
-    // todo - a test here will be good
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +87,7 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
         if(!isAnAccelerometerEvent(event)) return;
 
         storeSensorValues(event);
+
         updateUI();
 
         if(!hasSignificantChange(ax, ay, az)) return;

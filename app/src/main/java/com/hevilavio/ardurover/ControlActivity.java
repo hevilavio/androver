@@ -23,6 +23,8 @@ import com.hevilavio.ardurover.util.Constants;
 /**
  * Responsible to the control of the rover.
  *
+ * The ping activity
+ *
  * */
 public class ControlActivity extends AppCompatActivity {
 
