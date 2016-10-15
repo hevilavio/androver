@@ -59,9 +59,14 @@ void routeToMessageProcessor(char type[], String content){
     return;
   }
   
-  // motor control
+  // motor control front back
   if(type[0] == '0' && type[1] == '2'){
     motorControlProcessor(content);
+    return;
+  }
+  // motor control left right
+  if(type[0] == '0' && type[1] == '3'){
+    leftRightProcessor(content);
     return;
   }
   
@@ -85,6 +90,36 @@ void pingMessageProcessor(String message){
 // >> 135 => PWM value
 
 char lastState = '0';
+double factorSpeedA = 1.0;
+double factorSpeedB = 1.0;
+
+//03-1030
+void leftRightProcessor(String message){
+
+  factorSpeedA = 1.0;
+  factorSpeedB = 1.0;
+
+  if (message.charAt(0) == '0') {
+    // neutral
+    return;
+  }
+
+  String _speed = message.substring(1, 4);
+  int __speed = _speed.toInt();
+  
+  if (message.charAt(0) == '1') {
+    // right
+    factorSpeedB = 2.0;
+    return;
+  }
+  if (message.charAt(0) == '2') {
+    // left
+    factorSpeedA = 2.0;
+    return;
+  }
+
+}
+
 void motorControlProcessor(String message){
   
   if(message.charAt(0) != lastState){
@@ -94,18 +129,26 @@ void motorControlProcessor(String message){
   }
 
   String speedMotor = message.substring(1, 4);
+   
+  int speedMA = speedMotor.toInt() * factorSpeedA;
+  int speedMB = speedMotor.toInt() * factorSpeedB;
   
-  analogWrite(PIN_SPEED_MOTOR_A, speedMotor.toInt());
-  analogWrite(PIN_SPEED_MOTOR_B, speedMotor.toInt());
+  if(speedMA > 80) speedMA = 80;
+  if(speedMB > 80) speedMB = 80;
+    
+  analogWrite(PIN_SPEED_MOTOR_A, speedMA);
+  analogWrite(PIN_SPEED_MOTOR_B, speedMB);
   
   if (message.charAt(0) == '0'){
     roverOnNeutral();
   } 
   else if (message.charAt(0) == '1'){
-    roverOnClockWise();
+    // back
+    roverOnCountClockWise();
   } 
   else if (message.charAt(0) == '2'){
-    roverOnCountClockWise();
+    // forward
+    roverOnClockWise();
   }
 }
 
