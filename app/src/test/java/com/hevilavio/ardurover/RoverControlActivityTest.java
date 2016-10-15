@@ -2,6 +2,7 @@ package com.hevilavio.ardurover;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
 import android.support.annotation.NonNull;
 
 import com.hevilavio.ardurover.command.ArduinoCommandSender;
@@ -159,6 +160,28 @@ public class RoverControlActivityTest {
 
         roverControlActivity.onSensorChanged(event2);
         verify(arduinoCommandSender, times(1)).sendCommand(new ForwardOrBackwardCommand(crossedLimitValues[1]));
+    }
+
+    @Test
+    public void canUnregisterListener_when_focusChange_and_doesNot_has_Focus() throws Exception {
+
+        SensorManager sensorManager = mock(SensorManager.class);
+        roverControlActivity.sensorManager = sensorManager;
+
+        roverControlActivity.onWindowFocusChanged(false);
+
+        verify(sensorManager, times(1)).unregisterListener(any(RoverControlActivity.class));
+    }
+
+    @Test
+    public void shouldNotUnregisterListener_when_focusChange_but_has_Focus() throws Exception {
+
+        SensorManager sensorManager = mock(SensorManager.class);
+        roverControlActivity.sensorManager = sensorManager;
+
+        roverControlActivity.onWindowFocusChanged(true);
+
+        verify(sensorManager, times(0)).unregisterListener(any(RoverControlActivity.class));
     }
 
     @NonNull

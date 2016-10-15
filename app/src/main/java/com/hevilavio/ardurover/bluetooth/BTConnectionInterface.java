@@ -204,8 +204,8 @@ public class BTConnectionInterface {
         } catch (IOException e) {
             Log.e(Constants.LOG_TAG, e.getMessage());
 
-            this.stop();
-            this.start();
+//            this.stop();
+//            this.start();
 
             return null;
         }
