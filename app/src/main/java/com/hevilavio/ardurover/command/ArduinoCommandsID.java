@@ -7,5 +7,6 @@ public class ArduinoCommandsID {
 
     public static final String ROVER_FORWARD_BACKWARD = "02";
     public static final String ROVER_LEFT_RIGHT = "03";
+    public static final String ROVER_MOTION = "04";
 
 }

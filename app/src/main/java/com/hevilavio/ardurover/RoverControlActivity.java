@@ -15,7 +15,7 @@ import android.view.View;
 import com.hevilavio.ardurover.bluetooth.BTConnectionInterface;
 import com.hevilavio.ardurover.command.ArduinoCommand;
 import com.hevilavio.ardurover.command.ArduinoCommandSender;
-import com.hevilavio.ardurover.command.ForwardOrBackwardCommand;
+import com.hevilavio.ardurover.command.MotionCommand;
 import com.hevilavio.ardurover.util.AxisUiUpdater;
 import com.hevilavio.ardurover.util.Constants;
 
@@ -36,8 +36,7 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
 
     SensorManager sensorManager;
 
-
-    RoverControlActivity() {
+    public RoverControlActivity() {
         this.axisUiUpdater = new AxisUiUpdater();
         this.arduinoCommandSender = ArduinoCommandSender.getInstance();
     }
@@ -108,10 +107,7 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
 
 
     private void fireEventToArduino() {
-        ArduinoCommand command = new ForwardOrBackwardCommand(ay);
-        arduinoCommandSender.sendCommand(command);
-
-        // // TODO: 10/14/16 - fire a LeftOrRightCommand if necessary
+        arduinoCommandSender.sendCommand(new MotionCommand(ax, ay));
     }
 
     private void updateUI() {

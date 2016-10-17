@@ -6,7 +6,7 @@ import android.hardware.SensorManager;
 import android.support.annotation.NonNull;
 
 import com.hevilavio.ardurover.command.ArduinoCommandSender;
-import com.hevilavio.ardurover.command.ForwardOrBackwardCommand;
+import com.hevilavio.ardurover.command.MotionCommand;
 import com.hevilavio.ardurover.util.AxisUiUpdater;
 
 import org.junit.Before;
@@ -63,7 +63,7 @@ public class RoverControlActivityTest {
         assertEquals(0, roverControlActivity.lAx, 0.00001);
         assertEquals(0, roverControlActivity.lAy, 0.00001);
         assertEquals(0, roverControlActivity.lAz, 0.00001);
-        verify(arduinoCommandSender, times(0)).sendCommand(any(ForwardOrBackwardCommand.class));
+        verify(arduinoCommandSender, times(0)).sendCommand(any(MotionCommand.class));
 
     }
 
@@ -141,7 +141,7 @@ public class RoverControlActivityTest {
                 barelyCrossingLimitValues);
 
         roverControlActivity.onSensorChanged(event1);
-        verify(arduinoCommandSender, times(1)).sendCommand(any(ForwardOrBackwardCommand.class));
+        verify(arduinoCommandSender, times(1)).sendCommand(any(MotionCommand.class));
 
         roverControlActivity.onSensorChanged(event2);
         verifyNoMoreInteractions(arduinoCommandSender);
@@ -156,10 +156,10 @@ public class RoverControlActivityTest {
                 crossedLimitValues);
 
         roverControlActivity.onSensorChanged(event1);
-        verify(arduinoCommandSender, times(1)).sendCommand(new ForwardOrBackwardCommand(sensorValues[1]));
+        verify(arduinoCommandSender, times(1)).sendCommand(new MotionCommand(sensorValues[0], sensorValues[1]));
 
         roverControlActivity.onSensorChanged(event2);
-        verify(arduinoCommandSender, times(1)).sendCommand(new ForwardOrBackwardCommand(crossedLimitValues[1]));
+        verify(arduinoCommandSender, times(1)).sendCommand(new MotionCommand(crossedLimitValues[0], crossedLimitValues[1]));
     }
 
     @Test

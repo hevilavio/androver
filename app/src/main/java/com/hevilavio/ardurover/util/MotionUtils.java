@@ -1,28 +1,38 @@
 package com.hevilavio.ardurover.util;
 
-import com.hevilavio.ardurover.command.ArduinoCommand;
-
 /**
  * Created by hevilavio on 10/14/16.
  */
 
 public class MotionUtils {
 
-    private final String onNeutral;
-    private final String onPositive;
-    private final String onNegative;
-    private final int tolerance;
+    public static int ARDUINO_PWM_LIMIT = 80;
+    final int ABS_LIMIT_BEFORE_MOVING_ROVER = 15;
 
-    public MotionUtils(String onNeutral, String onPositive, String onNegative, int tolerance) {
-        this.onNeutral = onNeutral;
-        this.onPositive = onPositive;
-        this.onNegative = onNegative;
-        this.tolerance = tolerance;
+    private static final String DIRECTION_NEUTRAL = "0";
+    private static final String DIRECTION_FORWARD = "1";
+    private static final String DIRECTION_BACKWARD = "2";
+    private static final String DIRECTION_LEFT = "1";
+    private static final String DIRECTION_RIGHT = "2";
+
+    public String directionBasedOnRawXAxis(double rawXAxis){
+
+        String speed = getSpeed(rawXAxis);
+        return getDirectionBasedOnSpeed(Integer.valueOf(speed), rawXAxis,
+                DIRECTION_NEUTRAL, DIRECTION_FORWARD, DIRECTION_BACKWARD);
     }
 
-    public String getDirectionBasedOnSpeed(int speed, double rawAxis){
+    public String directionBasedOnRawYAxis(double rawYAxis){
 
-        if(Math.abs(speed) <= tolerance) return onNeutral;
+        String speed = getSpeed(rawYAxis);
+        return getDirectionBasedOnSpeed(Integer.valueOf(speed), rawYAxis,
+                DIRECTION_NEUTRAL, DIRECTION_LEFT, DIRECTION_RIGHT);
+    }
+
+    private String getDirectionBasedOnSpeed(int speed, double rawAxis, String onNeutral,
+                                           String onPositive, String onNegative){
+
+        if(Math.abs(speed) <= ABS_LIMIT_BEFORE_MOVING_ROVER) return onNeutral;
         if(rawAxis > 0) return onPositive;
         if(rawAxis < 0) return onNegative;
 
@@ -39,7 +49,7 @@ public class MotionUtils {
      * reference: http://stackoverflow.com/questions/345187/math-mapping-numbers
      *
      * */
-    public String mappingTOArduinoRange(double rawAxis) {
+    public String getSpeed(double rawAxis) {
 
         double value = Math.abs(rawAxis);
 
@@ -51,10 +61,9 @@ public class MotionUtils {
         double d = 200; // actually, is 80. But I want a more smooth throttle
         int mapped = (int) ((x-a)/(b-a) * (d-c) + c);
 
-        // todo: should ARDUINO_PWM_LIMIT be on the class?
-        if(mapped > ArduinoCommand.ARDUINO_PWM_LIMIT){
+        if(mapped > ARDUINO_PWM_LIMIT){
             // TODO: trigger tilt alert
-            mapped = ArduinoCommand.ARDUINO_PWM_LIMIT;
+            mapped = ARDUINO_PWM_LIMIT;
         }
 
         return leftPad(mapped);
