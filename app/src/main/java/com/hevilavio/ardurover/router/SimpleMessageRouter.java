@@ -18,7 +18,7 @@ import java.util.Map;
  */
 public class SimpleMessageRouter {
 
-    // map of <messageType, messageExecutor>
+    // linearMapping of <messageType, messageExecutor>
     Map<String, MessageHandler> executorMap;
     MessageExtractor messageExtractor;
 

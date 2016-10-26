@@ -1,9 +1,10 @@
 package com.hevilavio.ardurover.util;
 
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
+import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import com.hevilavio.ardurover.RoverControlActivity;
 
 
 /**
@@ -15,7 +16,25 @@ public class UIUpdater {
         ((TextView)activity.findViewById(viewId)).setText(value);
     }
 
-    public void updateMaxThrottle(AppCompatActivity activity, int viewId, boolean isOnLimit) {
-        // todo
+    public void updateThrottleLine(AppCompatActivity activity, int viewId, int speed) {
+        View throttleLineView = activity.findViewById(viewId);
+
+        int screenWidth = getScreenWidth(activity);
+        int lineWidth = new Mapper().linearMapping(speed, 0, 80, 0, screenWidth - 20);
+
+        RelativeLayout.LayoutParams layoutParams = getLayoutParams(throttleLineView);
+
+        layoutParams.width = lineWidth;
+        throttleLineView.setLayoutParams(layoutParams);
+    }
+
+    private RelativeLayout.LayoutParams getLayoutParams(View throttleLineView) {
+        return (RelativeLayout.LayoutParams) throttleLineView.getLayoutParams();
+    }
+
+    private int getScreenWidth(AppCompatActivity activity) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        return displayMetrics.widthPixels;
     }
 }

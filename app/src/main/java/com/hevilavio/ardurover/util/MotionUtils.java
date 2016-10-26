@@ -1,11 +1,5 @@
 package com.hevilavio.ardurover.util;
 
-import android.content.Intent;
-import android.support.annotation.IntegerRes;
-import android.util.Pair;
-
-import java.io.InputStream;
-
 /**
  * Created by hevilavio on 10/14/16.
  */
@@ -51,21 +45,12 @@ public class MotionUtils {
      * arduino analogic - 0 ~ 255
      * for my 5V motors - 0 ~ 160, limited by ARDUINO_PWM_LIMIT
      *
-     * Y = (X-A)/(B-A) * (D-C) + C
-     * reference: http://stackoverflow.com/questions/345187/math-mapping-numbers
      *
      * */
     public String getSpeed(double rawAxis) {
 
-        double value = Math.abs(rawAxis);
-
-        int x = (int) (value * 10); // 0~10 will be 0~100
-        double a = 0;
-        double b = 100;
-
-        double c = 0;
-        double d = 200; // actually, is 80. But I want a more smooth throttle
-        int mapped = (int) ((x-a)/(b-a) * (d-c) + c);
+        double value = Math.abs(rawAxis) * 10; // 0~10 will be 0~100
+        int mapped = new Mapper().linearMapping((int) value, 0, 100, 0, 200);
 
         if(mapped > ARDUINO_PWM_LIMIT){
             // TODO: trigger tilt alert
@@ -74,6 +59,7 @@ public class MotionUtils {
 
         return leftPad(mapped);
     }
+
 
     public boolean isGreaterOrEqualsLimit(Integer speed){
         return speed >= ARDUINO_PWM_LIMIT;

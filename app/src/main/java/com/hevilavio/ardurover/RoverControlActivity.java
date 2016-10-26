@@ -26,7 +26,7 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
 
     // TODO - Move to another class
     static final int DECIMAL_PLATES = 4;
-    static final float AXIS_CHANGE_TOLERANCE = 0.5f;
+    static final float AXIS_CHANGE_TOLERANCE = 0.3f;
 
     double ax,ay,az;
     double lAx,lAy,lAz;
@@ -101,14 +101,16 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
         MotionUtils motionUtils = new MotionUtils();
 
         String speed = motionUtils.getSpeed(ay);
-        boolean isOnLimit = motionUtils.isGreaterOrEqualsLimit(Integer.parseInt(speed));
+        int speedAsInteger = Integer.parseInt(speed);
+        boolean isOnLimit = motionUtils.isGreaterOrEqualsLimit(speedAsInteger);
 
         Log.d(Constants.LOG_TAG, "M=updateThrottleUI,speed=" + speed + ",isOnLimit=" + isOnLimit);
 
         // speed
-//        uIUpdater.updateText(this, R.id.txt_axis_x_value, speed);
-        // limit light
-//        uIUpdater.updateMaxThrottle(this, R.id.txt_axis_x_value, isOnLimit);
+        uIUpdater.updateText(this, R.id.throttle_text, "Throttle: " + speedAsInteger);
+
+        // speed dash
+        uIUpdater.updateThrottleLine(this, R.id.throttle_line, speedAsInteger);
     }
 
 
