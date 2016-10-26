@@ -13,11 +13,11 @@ import android.util.Log;
 import android.view.View;
 
 import com.hevilavio.ardurover.bluetooth.BTConnectionInterface;
-import com.hevilavio.ardurover.command.ArduinoCommand;
 import com.hevilavio.ardurover.command.ArduinoCommandSender;
 import com.hevilavio.ardurover.command.MotionCommand;
-import com.hevilavio.ardurover.util.AxisUiUpdater;
 import com.hevilavio.ardurover.util.Constants;
+import com.hevilavio.ardurover.util.MotionUtils;
+import com.hevilavio.ardurover.util.UIUpdater;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,18 +31,18 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
     double ax,ay,az;
     double lAx,lAy,lAz;
 
-    private final AxisUiUpdater axisUiUpdater;
+    private final UIUpdater uIUpdater;
     private final ArduinoCommandSender arduinoCommandSender;
 
     SensorManager sensorManager;
 
     public RoverControlActivity() {
-        this.axisUiUpdater = new AxisUiUpdater();
+        this.uIUpdater = new UIUpdater();
         this.arduinoCommandSender = ArduinoCommandSender.getInstance();
     }
 
-    public RoverControlActivity(AxisUiUpdater axisUiUpdater, ArduinoCommandSender arduinoCommandSender) {
-        this.axisUiUpdater = axisUiUpdater;
+    public RoverControlActivity(UIUpdater axisUiUpdater, ArduinoCommandSender arduinoCommandSender) {
+        this.uIUpdater = axisUiUpdater;
         this.arduinoCommandSender = arduinoCommandSender;
     }
 
@@ -87,12 +87,28 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
 
         storeSensorValues(event);
 
-        updateUI();
+        updateAxisUI();
 
         if(!hasSignificantChange(ax, ay, az)) return;
 
         updateLastSensorValues(ax, ay, az);
         fireEventToArduino();
+
+        updateThrottleUI();
+    }
+
+    private void updateThrottleUI() {
+        MotionUtils motionUtils = new MotionUtils();
+
+        String speed = motionUtils.getSpeed(ay);
+        boolean isOnLimit = motionUtils.isGreaterOrEqualsLimit(Integer.parseInt(speed));
+
+        Log.d(Constants.LOG_TAG, "M=updateThrottleUI,speed=" + speed + ",isOnLimit=" + isOnLimit);
+
+        // speed
+//        uIUpdater.updateText(this, R.id.txt_axis_x_value, speed);
+        // limit light
+//        uIUpdater.updateMaxThrottle(this, R.id.txt_axis_x_value, isOnLimit);
     }
 
 
@@ -110,10 +126,10 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
         arduinoCommandSender.sendCommand(new MotionCommand(ax, ay));
     }
 
-    private void updateUI() {
-        axisUiUpdater.updateText(this, R.id.txt_axis_x_value, scaleDoubleToString(ax));
-        axisUiUpdater.updateText(this, R.id.txt_axis_y_value, scaleDoubleToString(ay));
-        axisUiUpdater.updateText(this, R.id.txt_axis_z_value, scaleDoubleToString(az));
+    private void updateAxisUI() {
+        uIUpdater.updateText(this, R.id.txt_axis_x_value, scaleDoubleToString(ax));
+        uIUpdater.updateText(this, R.id.txt_axis_y_value, scaleDoubleToString(ay));
+        uIUpdater.updateText(this, R.id.txt_axis_z_value, scaleDoubleToString(az));
     }
 
     private void storeSensorValues(SensorEvent event) {

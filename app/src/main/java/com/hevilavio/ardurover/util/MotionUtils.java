@@ -1,5 +1,11 @@
 package com.hevilavio.ardurover.util;
 
+import android.content.Intent;
+import android.support.annotation.IntegerRes;
+import android.util.Pair;
+
+import java.io.InputStream;
+
 /**
  * Created by hevilavio on 10/14/16.
  */
@@ -67,6 +73,10 @@ public class MotionUtils {
         }
 
         return leftPad(mapped);
+    }
+
+    public boolean isGreaterOrEqualsLimit(Integer speed){
+        return speed >= ARDUINO_PWM_LIMIT;
     }
 
     private String leftPad(int mapped) {

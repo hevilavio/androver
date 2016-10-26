@@ -7,7 +7,7 @@ import android.support.annotation.NonNull;
 
 import com.hevilavio.ardurover.command.ArduinoCommandSender;
 import com.hevilavio.ardurover.command.MotionCommand;
-import com.hevilavio.ardurover.util.AxisUiUpdater;
+import com.hevilavio.ardurover.util.UIUpdater;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class RoverControlActivityTest {
     float[] crossedLimitValues;
 
     RoverControlActivity roverControlActivity;
-    AxisUiUpdater axisUpdater;
+    UIUpdater axisUpdater;
     ArduinoCommandSender arduinoCommandSender;
 
     @Before
@@ -48,7 +48,7 @@ public class RoverControlActivityTest {
                 2 + RoverControlActivity.AXIS_CHANGE_TOLERANCE + 0.4f,
                 3 + RoverControlActivity.AXIS_CHANGE_TOLERANCE + 0.4f };
 
-        axisUpdater = mock(AxisUiUpdater.class);
+        axisUpdater = mock(UIUpdater.class);
         arduinoCommandSender = mock(ArduinoCommandSender.class);
         roverControlActivity = new RoverControlActivity(axisUpdater, arduinoCommandSender);
     }
