@@ -28,6 +28,9 @@
         <service
             android:name=".service.PingService"
             android:exported="false" />
+        <service
+            android:name=".service.HeartbeatService"
+            android:exported="false" />
 
         <activity
             android:name=".RoverControlActivity"

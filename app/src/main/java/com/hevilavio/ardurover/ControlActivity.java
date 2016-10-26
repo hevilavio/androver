@@ -63,7 +63,7 @@ public class ControlActivity extends AppCompatActivity {
     private void startPingService() {
         final Intent pingServiceIntent = new Intent(this, PingService.class);
 
-        Log.i(Constants.LOG_TAG, "M=configurePairButton, starting pingServiceIntent");
+        Log.d(Constants.LOG_TAG, "M=configurePairButton, starting pingServiceIntent");
         startService(pingServiceIntent);
     }
 

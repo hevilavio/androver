@@ -1,5 +1,6 @@
 package com.hevilavio.ardurover;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -15,6 +16,7 @@ import android.view.View;
 import com.hevilavio.ardurover.bluetooth.BTConnectionInterface;
 import com.hevilavio.ardurover.command.ArduinoCommandSender;
 import com.hevilavio.ardurover.command.MotionCommand;
+import com.hevilavio.ardurover.service.HeartbeatService;
 import com.hevilavio.ardurover.util.Constants;
 import com.hevilavio.ardurover.util.MotionUtils;
 import com.hevilavio.ardurover.util.UIUpdater;
@@ -65,7 +67,21 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
         if(sensorManager == null) sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         registerAccelerometerListener();
+
         BTConnectionInterface.getInstance().start();
+
+        startHeartbeatService();
+    }
+
+    private void startHeartbeatService() {
+        Log.d(Constants.LOG_TAG, "M=startHeartbeatService, starting heartbeatIntent");
+
+        startService(new Intent(this, HeartbeatService.class));
+    }
+
+    private void stopHeartBeatService() {
+        HeartbeatService.prepareToStop();
+        stopService(new Intent(this, HeartbeatService.class));
     }
 
     @Override
@@ -73,7 +89,10 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
         super.onWindowFocusChanged(hasFocus);
         Log.d(Constants.LOG_TAG, "M=onWindowFocusChanged,hasFocus=" + hasFocus);
 
-        if(!hasFocus) unregisterAccelerometerListener();
+        if(!hasFocus){
+            unregisterAccelerometerListener();
+            stopHeartBeatService();
+        }
     }
 
     @Override
