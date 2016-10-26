@@ -50,7 +50,7 @@ public class MotionUtils {
     public String getSpeed(double rawAxis) {
 
         double value = Math.abs(rawAxis) * 10; // 0~10 will be 0~100
-        int mapped = new Mapper().linearMapping((int) value, 0, 100, 0, 200);
+        int mapped = new Mapper().linearMapping((int) value, 0, 100, 0, 250);
 
         if(mapped > ARDUINO_PWM_LIMIT){
             // TODO: trigger tilt alert

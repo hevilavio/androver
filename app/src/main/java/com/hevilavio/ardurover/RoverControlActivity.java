@@ -26,7 +26,7 @@ public class RoverControlActivity extends AppCompatActivity implements SensorEve
 
     // TODO - Move to another class
     static final int DECIMAL_PLATES = 4;
-    static final float AXIS_CHANGE_TOLERANCE = 0.3f;
+    static final float AXIS_CHANGE_TOLERANCE = 0.5f;
 
     double ax,ay,az;
     double lAx,lAy,lAz;
