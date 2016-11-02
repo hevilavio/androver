@@ -76,7 +76,6 @@ void pingMessageProcessor(String message){
   Serial.print(message);
 }
 
-char lastState = '0';
 
 /*
 example:
@@ -88,6 +87,8 @@ example:
 2  - left/right
 027- left/right speed 
 */
+
+char lastState = '0';
 void motionControlProcessor(String message){
   
   if(message.charAt(0) != lastState){
@@ -100,18 +101,19 @@ void motionControlProcessor(String message){
   int speedMA = speedMotor.toInt();
   int speedMB = speedMotor.toInt();
   
-  if (message.charAt(4) == '0'){
+  char _direction = message.charAt(4);
+  String speedDirection = message.substring(5, 8);
+  if (_direction == '0'){
     // nothing
   }
-  
-  if (message.charAt(4) == '1'){
+  if (_direction == '1'){
     // left
-    speedMA += message.substring(5, 8).toInt();
+    speedMA += speedDirection.toInt();
   }
   
-  if (message.charAt(4) == '2'){
+  if (_direction == '2'){
     // right
-    speedMB+= message.substring(5, 8).toInt();
+    speedMB += speedDirection.toInt();
   }
    
   
