@@ -9,6 +9,35 @@ int IN3 = 8;
 int IN4 = 9;
 int PIN_SPEED_MOTOR_B = 10;
 
+/*
+ARDUINO -> COMPONENT
+
+5V  -> 5V L2
+GND -> GND L2
+GND -> GND HT (3RD PIN)
+RX  -> TX HT (4TH PIN)
+TX  -> RESISTOR RX HT (5TH PIN)
+P4  -> IN1
+P5  -> IN2
+P6  -> ENA
+
+P8  -> IN3
+P9  -> IN4
+P10 -> ENB
+
+MOTOR LEFT:
+YELLOW -> OUT1
+GREEN  -> OUT2
+
+MOTOR RIGHT:
+YELLOW -> OUT4
+GREEN  -> OUT3
+
+L298N:
+12V CONFIG WITH JUMPING
+
+*/
+
 void setup()
 {
   Serial.begin(9600);
@@ -109,16 +138,23 @@ void motionControlProcessor(String message){
   if (_direction == '1'){
     // left
     speedMA += speedDirection.toInt();
+    speedMB -= speedDirection.toInt();
   }
   
   if (_direction == '2'){
     // right
     speedMB += speedDirection.toInt();
+    speedMA -= speedDirection.toInt();
   }
    
   
   if(speedMA > 120) speedMA = 120;
   if(speedMB > 120) speedMB = 120;
+
+  if(speedMA < 0) speedMA = 0;
+  if(speedMB < 0) speedMB = 0;
+
+
     
   analogWrite(PIN_SPEED_MOTOR_A, speedMA);
   analogWrite(PIN_SPEED_MOTOR_B, speedMB);
